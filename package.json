@@ -1,0 +1,24 @@
+{
+  "name": "3scale-bot",
+  "version": "1.0.0",
+  "description": "3scale Slack implementation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ddcesare/3scale-bot.git"
+  },
+  "keywords": [
+    "slack",
+    "3scale",
+    "analytics"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ddcesare/3scale-bot/issues"
+  },
+  "homepage": "https://github.com/ddcesare/3scale-bot#readme"
+}
