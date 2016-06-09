@@ -1,6 +1,7 @@
 import Botkit from 'botkit'
+import http from 'http'
 
-if (/*!process.env.providerKey || !process.env.serviceID || */!process.env.token) {
+if (!process.env.providerKey || !process.env.serviceID || !process.env.token) {
   console.log('Error: Specify providerKey serviceID and token in environment');
   process.exit(1);
 }
@@ -16,7 +17,7 @@ bot.startRTM((err, bot, payload) => {
   }
 })
 
-controller.hears(['che'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['che'], 'direct_message,direct_mention,mention', (bot, message) => {
 
   bot.api.reactions.add({
     timestamp: message.ts,
@@ -35,6 +36,40 @@ controller.hears(['che'], 'direct_message,direct_mention,mention', function(bot,
     } else {
       bot.reply(message, 'Hello.');
     }
+  });
+});
+
+controller.hears(['show me the usage of hits'], 'direct_message,direct_mention,mention', function(bot, message) {
+  let options = {
+    hostname: 'multitenant-admin.3scale.net.dev',
+    port: 3000,
+    //path: '/stats/services/6/usage.json',
+    method: 'GET',
+    agent: false,
+    path: `/stats/services/${process.env.serviceID}/usage.json?provider_key=${process.env.providerKey}&metric_name=hits&since=2016-05-07&until=2016-05-09&granularity=month&skip_change=true`
+    /*query: {
+      provider_key: process.env.providerKey,
+      metric_name: 'hits',
+      since: '2015-05-07',
+      until: '2015-05-09',
+      granularity: 'day',
+      skip_change: true
+    }*/
+  };
+
+  http.get(options, (res) => {
+    /*console.log('statusCode: ', res.statusCode);
+    console.log('headers: ', res.headers);*/
+    res.setEncoding('utf8');
+    res.on('data', (d) => {
+      bot.reply(message, JSON.stringify(d))
+      //process.stdout.write(d);
+      console.log(d)
+    });
+  })
+
+  .on('error', (e) => {
+    console.error(e);
   });
 });
 
