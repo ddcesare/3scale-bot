@@ -20,5 +20,11 @@
   "bugs": {
     "url": "https://github.com/ddcesare/3scale-bot/issues"
   },
-  "homepage": "https://github.com/ddcesare/3scale-bot#readme"
+  "homepage": "https://github.com/ddcesare/3scale-bot#readme",
+  "dependencies": {
+    "botkit": "^0.2.0"
+  },
+  "devDependencies": {
+    "babel-polyfill": "^6.9.1"
+  }
 }
