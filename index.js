@@ -42,7 +42,7 @@ controller.hears(['che'], 'direct_message,direct_mention,mention', (bot, message
 });
 
 controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'show me the recent usage of (.*)', 'show me the recent usage'], 'direct_message,direct_mention,mention', function(bot, message) {
-  let [metric, since, until, granularity] = ['hits', moment.utc().subtract(24, 'hours').format(), moment.utc().format(), 'hour']
+  let [metric, since, until, granularity] = ['hits', moment.utc().subtract(24, 'hours').format(), moment.utc().format(), 'hour'];
 
   if (message.match.length === 5) {
     console.log('5');
@@ -64,14 +64,15 @@ controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'sh
   const POINT_INTERVALS = { hour: 3600 * 1000, day: 24 * 3600 * 1000, month: null };
 
   http.get(options, (res) => {
-    /*console.log('statusCode: ', res.statusCode);
-    console.log('headers: ', res.headers);*/
     res.setEncoding('utf8');
 
     res.on('data', (d) => {
       d = JSON.parse(d);
       // le hc shit
       let highchartsConfig = {
+        title: {
+          text: `Usage of ${d.metric.name}`
+        },
         yAxis: {
           min: 0,
           title: {
@@ -91,7 +92,7 @@ controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'sh
           data: d.values
         }]
       };
-      
+
       let postData = querystring.stringify({
         options: JSON.stringify(highchartsConfig),
         filename: 'le_plot',
@@ -109,8 +110,6 @@ controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'sh
         }
       };
 
-      console.log('options', options)
-      console.log('postData', postData)
 
       let postReq = http.request(options, (res) => {
         console.log(`STATUS: ${res.statusCode}`);
@@ -120,7 +119,16 @@ controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'sh
         
         res.on('data', (chunk) => {
           let url = `http://export.highcharts.com/${chunk}`;
-          bot.reply(message, JSON.stringify(url))
+          bot.reply(message, {
+            'text': `A total of ${d.total} for metric ${d.metric.name} from ${moment(d.period.since).format('L')} until ${moment(d.period.until).format('L')} per ${d.period.granularity}`,
+            'attachments': [
+              {
+                'fallback': `Oops, graph not showing? Blame Highcharts! :D`,
+                'title': `Usage of ${d.metric.name}`,
+                'image_url': url
+              }
+              ]
+        })
         });
 
       });
@@ -128,10 +136,6 @@ controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'sh
       // post the data
       postReq.write(postData);
       postReq.end();
-
-
-      bot.reply(message, JSON.stringify(d));
-      //process.stdout.write(d);
 
     });
   })
