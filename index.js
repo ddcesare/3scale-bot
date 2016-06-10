@@ -57,6 +57,10 @@ controller.hears(['whois (.*)'], 'direct_message, direct_mention,mention', funct
       let email = queryParam.replace('<mailto:', '').split('|')[0]
       pathQuery = `email=${email}`
       break
+    // Username
+    case /^[a-zA-Z-_]+$/.test(queryParam):
+      pathQuery = `username=${queryParam}`
+      break
     default:
       bot.botkit.log('Query param undefined')
       return
