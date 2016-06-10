@@ -41,6 +41,41 @@ controller.hears(['che'], 'direct_message,direct_mention,mention', (bot, message
   });
 });
 
+controller.hears(['whois (.*)'], 'direct_message, direct_mention,mention', function(bot, message) {
+  let queryParam = message.match[1]
+  let pathQuery  = null
+
+  switch(true) {
+    // ID
+    case /^\d+$/.test(queryParam):
+      pathQuery = `user_id=${queryParam}`
+      break
+    default:
+      bot.botkit.log('Query param undefined')
+      return
+  }
+
+  let options = {
+    hostname: 'multitenant-admin.3scale.net.dev',
+    port: 3000,
+    method: 'GET',
+    agent: false,
+    path: `/admin/api/accounts/find.json?provider_key=${process.env.providerKey}&${pathQuery}`
+  };
+
+  http.get(options, (res) => {
+    res.setEncoding('utf8');
+
+    res.on('data', (data) => {
+      
+      bot.reply(message, { 'text': data })
+    })
+    .on('error', (e) => {
+      console.error(e);
+    });
+  })
+});
+
 controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'show me the recent usage of (.*)', 'show me the recent usage'], 'direct_message,direct_mention,mention', function(bot, message) {
   let [metric, since, until, granularity] = ['hits', moment.utc().subtract(24, 'hours').format(), moment.utc().format(), 'hour'];
 
