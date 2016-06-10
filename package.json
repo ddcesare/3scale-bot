@@ -22,7 +22,8 @@
   },
   "homepage": "https://github.com/ddcesare/3scale-bot#readme",
   "dependencies": {
-    "botkit": "^0.2.0"
+    "botkit": "^0.2.0",
+    "moment": "^2.13.0"
   },
   "devDependencies": {
     "babel-polyfill": "^6.9.1"

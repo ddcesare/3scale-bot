@@ -1,29 +1,30 @@
 import Botkit from 'botkit'
 import http from 'http'
 import querystring from 'querystring'
+import moment from 'moment'
 
 if (!process.env.providerKey || !process.env.serviceID || !process.env.token) {
   console.log('Error: Specify providerKey serviceID and token in environment');
   process.exit(1);
 }
 
-let controller = Botkit.slackbot()
+let controller = Botkit.slackbot();
 let bot = controller.spawn({
   token: process.env.token
-})
+});
 
 bot.startRTM((err, bot, payload) => {
   if (err) {
     throw new Error('Could not connect to Slack');
   }
-})
+});
 
 controller.hears(['che'], 'direct_message,direct_mention,mention', (bot, message) => {
 
   bot.api.reactions.add({
     timestamp: message.ts,
     channel: message.channel,
-    name: 'robot_face',
+    name: 'robot_face'
   }, function(err, res) {
     if (err) {
       bot.botkit.log('Failed to add emoji reaction :(', err);
@@ -40,17 +41,27 @@ controller.hears(['che'], 'direct_message,direct_mention,mention', (bot, message
   });
 });
 
-controller.hears(['show'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['show me the usage of (.*) from (.*) until (.*) per (.*)', 'show me the recent usage of (.*)', 'show me the recent usage'], 'direct_message,direct_mention,mention', function(bot, message) {
+  let [metric, since, until, granularity] = ['hits', moment.utc().subtract(24, 'hours').format(), moment.utc().format(), 'hour']
+
+  if (message.match.length === 5) {
+    console.log('5');
+    [metric, since, until, granularity] = message.match.shift();
+  }
+  else if (message.match.length === 2) {
+    console.log('2');
+    [metric, since, until, granularity] = [message.match[1], moment.utc().subtract(24, 'hours').format(), moment.utc().format(), 'hour'];
+  }
+
   let options = {
     hostname: 'multitenant-admin.3scale.net.dev',
     port: 3000,
-    //path: '/stats/services/6/usage.json',
     method: 'GET',
     agent: false,
-    path: `/stats/services/${process.env.serviceID}/usage.json?provider_key=${process.env.providerKey}&metric_name=hits&since=2016-06-07&until=2016-06-09&granularity=day&skip_change=true`
+    path: `/stats/services/${process.env.serviceID}/usage.json?provider_key=${process.env.providerKey}&metric_name=${metric}&since=${since}&until=${until}&granularity=${granularity}&skip_change=true`
   };
 
-  const POINT_INTERVALS = { hour: 3600 * 1000, day: 24 * 3600 * 1000, month: null }
+  const POINT_INTERVALS = { hour: 3600 * 1000, day: 24 * 3600 * 1000, month: null };
 
   http.get(options, (res) => {
     /*console.log('statusCode: ', res.statusCode);
@@ -58,13 +69,13 @@ controller.hears(['show'], 'direct_message,direct_mention,mention', function(bot
     res.setEncoding('utf8');
 
     res.on('data', (d) => {
-      d = JSON.parse(d)
+      d = JSON.parse(d);
       // le hc shit
       let highchartsConfig = {
         yAxis: {
           min: 0,
           title: {
-            text: 'Hits'
+            text: d.name
           }
         },
         xAxis: {
@@ -76,10 +87,11 @@ controller.hears(['show'], 'direct_message,direct_mention,mention', function(bot
           pointStart: Date.parse(d.period.since)
         },
         series: [{
+          name: d.metric.name,
           data: d.values
         }]
-      }
-
+      };
+      
       let postData = querystring.stringify({
         options: JSON.stringify(highchartsConfig),
         filename: 'le_plot',
@@ -107,19 +119,18 @@ controller.hears(['show'], 'direct_message,direct_mention,mention', function(bot
         res.setEncoding('utf8');
         
         res.on('data', (chunk) => {
-          console.log(`BODY: ${chunk}`);
-          let url = `http://export.highcharts.com/${chunk}`
+          let url = `http://export.highcharts.com/${chunk}`;
           bot.reply(message, JSON.stringify(url))
         });
 
-      })
+      });
 
       // post the data
       postReq.write(postData);
       postReq.end();
 
 
-      bot.reply(message, JSON.stringify(d))
+      bot.reply(message, JSON.stringify(d));
       //process.stdout.write(d);
 
     });
