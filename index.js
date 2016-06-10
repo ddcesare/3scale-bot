@@ -42,28 +42,28 @@ controller.hears(['che'], 'direct_message,direct_mention,mention', (bot, message
   });
 });
 
-controller.hears(['whois (.*)'], 'direct_message, direct_mention,mention', function(bot, message) {
-  let queryParam = message.match[1]
-  let pathQuery  = null
+controller.hears(['whois (.*)'], 'direct_message,direct_mention,mention', function(bot, message) {
+  let queryParam = message.match[1];
+  let pathQuery  = null;
 
   switch(true) {
     // ID
     case /^\d+$/.test(queryParam):
-      pathQuery = `user_id=${queryParam}`
-      break
+      pathQuery = `user_id=${queryParam}`;
+      break;
     // Email
     case /\S+@\S+/.test(queryParam):
       // TODO
       // super ugly hackaton hack since slack's returning email in <mailto> tag
-      let email = queryParam.replace('<mailto:', '').split('|')[0]
-      pathQuery = `email=${email}`
+      let email = queryParam.replace('<mailto:', '').split('|')[0];
+      pathQuery = `email=${email}`;
       break
     // Username
     case /^[a-zA-Z-_]+$/.test(queryParam):
-      pathQuery = `username=${queryParam}`
+      pathQuery = `username=${queryParam}`;
       break
     default:
-      bot.botkit.log('Query param undefined')
+      bot.botkit.log('Query param undefined');
       return
   }
 
