@@ -50,6 +50,13 @@ controller.hears(['whois (.*)'], 'direct_message, direct_mention,mention', funct
     case /^\d+$/.test(queryParam):
       pathQuery = `user_id=${queryParam}`
       break
+    // Email
+    case /\S+@\S+/.test(queryParam):
+      // TODO
+      // super ugly hackaton hack since slack's returning email in <mailto> tag
+      let email = queryParam.replace('<mailto:', '').split('|')[0]
+      pathQuery = `email=${email}`
+      break
     default:
       bot.botkit.log('Query param undefined')
       return
