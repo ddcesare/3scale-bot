@@ -2,6 +2,7 @@ import Botkit from 'botkit'
 import http from 'http'
 import querystring from 'querystring'
 import moment from 'moment'
+import jsBeautify from 'js-beautify'
 
 if (!process.env.providerKey || !process.env.serviceID || !process.env.token) {
   console.log('Error: Specify providerKey serviceID and token in environment');
@@ -79,7 +80,7 @@ controller.hears(['whois (.*)'], 'direct_message, direct_mention,mention', funct
 
     res.on('data', (data) => {
       
-      bot.reply(message, { 'text': data })
+      bot.reply(message, { 'text': jsBeautify(data) })
     })
     .on('error', (e) => {
       console.error(e);
